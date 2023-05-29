@@ -1,0 +1,66 @@
+version: '3.2'
+
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:latest
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=initial
+    volumes:
+      - mysql:/var/lib/mysql/
+      - ./my.cnf:/etc/mysql/my.cnf
+    logging:
+      options:
+        max-size: 50M
+    restart: always
+  mongo:
+    container_name: mongo
+    image: mongo:latest
+    command: mongod --config /etc/mongo/mongod.conf
+    entrypoint:
+      - bash
+      - -c
+      - |
+          chmod 400 /etc/mongo/mongodb_keyfile
+          chown 999:999 /etc/mongo/mongodb_keyfile
+          exec docker-entrypoint.sh $$@
+      #rs.initiate({_id: "rs0", members: [{_id: 0, host: "localhost:27017"}]})
+      #rs.initiate({_id: "rs1", members: [{_id: 0, host: "mongo:27017"}]})
+      ##rs.add({_id: 0, host: "mongo:27017"})
+      #db.createUser({user: "admin", pwd: "admin", roles: [{role:"root", db: "admin"}]})
+    ports:
+      - 27017:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+    volumes:
+      - mongo:/data/db
+      - ./mongod.conf:/etc/mongo/mongod.conf
+      - ./mongodb_keyfile:/etc/mongo/mongodb_keyfile
+    logging:
+      options:
+        max-size: 50M
+    restart: always
+  arango:
+    container_name: arango
+    image: arangodb:latest
+    ports:
+      - 8529:8529
+    environment:
+      ARANGO_ROOT_PASSWORD: initial
+    volumes:
+      - arango:/var/lib/arangodb3
+    logging:
+      options:
+        max-size: 50M
+    restart: always
+
+volumes:
+  mysql:
+    name: mysql
+  mongo:
+    name: mongo
+  arango:
+    name: arango

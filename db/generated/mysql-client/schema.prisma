@@ -1,0 +1,68 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "./generated/mysql-client"
+  binaryTargets = ["native", "darwin-arm64", "debian-openssl-1.1.x", "linux-arm64-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:initial@localhost:3306/dbPerformance"
+}
+
+model city {
+  id                                 Int         @id
+  zip                                String      @db.VarChar(15)
+  city_name                          String      @db.VarChar(100)
+  country_name                       String      @db.VarChar(100)
+  person_person_birth_city_idTocity  person[]    @relation("person_birth_city_idTocity")
+  person_person_living_city_idTocity person[]    @relation("person_living_city_idTocity")
+  trip_city                          trip_city[]
+}
+
+model person {
+  id                               Int           @id
+  first_name                       String        @db.VarChar(100)
+  last_name                        String        @db.VarChar(100)
+  gender                           String        @db.VarChar(1)
+  languages                        String        @db.VarChar(50)
+  occupation                       String        @db.VarChar(100)
+  interests                        String        @db.VarChar(300)
+  birthdate                        DateTime      @db.DateTime(0)
+  birth_city_id                    Int
+  living_city_id                   Int
+  city_person_birth_city_idTocity  city          @relation("person_birth_city_idTocity", fields: [birth_city_id], references: [id], map: "person_ibfk_1")
+  city_person_living_city_idTocity city          @relation("person_living_city_idTocity", fields: [living_city_id], references: [id], map: "person_ibfk_2")
+  trip_person                      trip_person[]
+
+  @@index([birth_city_id], map: "birth_city_id")
+  @@index([living_city_id], map: "living_city_id")
+  @@index([birth_city_id, living_city_id], map: "birth_city_id_living_city_id")
+}
+
+model trip {
+  id          Int           @id
+  headline    String        @db.VarChar(100)
+  description String        @db.Text
+  trip_city   trip_city[]
+  trip_person trip_person[]
+}
+
+model trip_city {
+  trip_id Int
+  city_id Int
+  trip    trip @relation(fields: [trip_id], references: [id], map: "trip_city_ibfk_1")
+  city    city @relation(fields: [city_id], references: [id], map: "trip_city_ibfk_2")
+
+  @@id([trip_id, city_id])
+  @@index([city_id], map: "city_id")
+}
+
+model trip_person {
+  trip_id   Int
+  person_id Int
+  trip      trip   @relation(fields: [trip_id], references: [id], map: "trip_person_ibfk_1")
+  person    person @relation(fields: [person_id], references: [id], map: "trip_person_ibfk_2")
+
+  @@id([trip_id, person_id])
+  @@index([person_id], map: "person_id")
+}

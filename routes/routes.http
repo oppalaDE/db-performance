@@ -1,0 +1,5 @@
+###
+POST http://localhost:6060/generate-test-data
+
+###
+GET http://localhost:6060/benchmark

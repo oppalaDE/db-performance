@@ -1,0 +1,27 @@
+{
+  "name": "db-performance",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prisma:dbpull:mysql": "npx prisma db pull --schema db/schema_mysql.prisma",
+    "prisma:generate:mysql": "npx prisma generate --schema db/schema_mysql.prisma",
+    "prisma:generate:mongo": "npx prisma generate --schema db/schema_mongo.prisma"
+  },
+  "author": "Leon Rose",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^4.14.0",
+    "arangojs": "^8.3.0",
+    "benchmark": "^2.1.4",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.18.2",
+    "mongoose": "^7.1.0"
+  },
+  "devDependencies": {
+    "prisma": "^4.14.0"
+  }
+}

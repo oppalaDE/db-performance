@@ -1,0 +1,50 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "./generated/mongo-client"
+  binaryTargets   = ["native", "darwin-arm64", "debian-openssl-1.1.x", "linux-arm64-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = "mongodb://admin:admin@localhost:27017/dbPerformance?authSource=admin&retryWrites=false&replicaSet=rs0"
+}
+
+model city {
+  id                                  Int      @id @map("_id")
+  zip                                 String
+  city_name                           String
+  country_name                        String
+  person_person_birth_city_idTocity  person[] @relation("person_birth_city_idTocity")
+  person_person_living_city_idTocity person[] @relation("person_living_city_idTocity")
+}
+
+model person {
+  id                                Int      @id @map("_id")
+  first_name                        String
+  last_name                         String
+  gender                            String
+  languages                         String
+  occupation                        String
+  interests                         String
+  birthdate                         DateTime
+  birth_city_id                     Int
+  living_city_id                    Int
+  city_person_birth_city_idTocity   city     @relation("person_birth_city_idTocity", fields: [birth_city_id], references: [id])
+  city_person_living_city_idTocity  city     @relation("person_living_city_idTocity", fields: [living_city_id], references: [id])
+
+  @@index([birth_city_id], map: "birth_city_id_1")
+  @@index([living_city_id], map: "living_city_id_1")
+  @@index([birth_city_id, living_city_id], map: "birth_city_id_1_living_city_id_1")
+}
+
+model trip {
+  id                 Int           @id @map("_id")
+  headline           String
+  description        String
+  person_ids         Int[]
+  city_ids           Int[]
+  no_person_and_city Boolean
+
+  @@index([person_ids], map: "person_ids_1")
+  @@index([city_ids], map: "city_ids_1")
+}
