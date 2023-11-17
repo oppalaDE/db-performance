@@ -1,5 +1,41 @@
 ###
 POST http://localhost:6060/generate-test-data
 
+
+
 ###
 GET http://localhost:6060/benchmark
+
+
+
+###
+GET http://localhost:6060/benchmark-cache
+
+
+###
+GET http://localhost:6060/apicache/clear
+
+###
+GET http://localhost:6060/apicache/performance
+
+###
+GET http://localhost:6060/apicache/index
+
+
+###
+GET http://localhost:6060/cache/normal
+Content-Type: application/json
+
+{ "birth_city_id": "25", "living_city_id": "2"}
+
+###
+GET http://localhost:6060/cache/apicache
+Content-Type: application/json
+
+{ "birth_city_id": "25", "living_city_id": "2"}
+
+###
+POST http://localhost:8529/_db/dbPerformance/foxx-test/cache/normal
+Content-Type: application/json
+
+{ "birth_city_id": "25", "living_city_id": "2"}

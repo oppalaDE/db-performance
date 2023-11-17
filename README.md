@@ -87,3 +87,26 @@ arango-subquery x 432 ops/sec ±1.25% (81 runs sampled), mean: 0.002316137275659
 arango-subtraversal x 246 ops/sec ±0.69% (82 runs sampled), mean: 0.004068192265746448
 arango-array x 630 ops/sec ±0.92% (81 runs sampled), mean: 0.0015876764702804091
 ```
+
+## Cache Benchmark Results
+
+After the `foxx/index.js` is uploaded to Arango (`Services > Add Service > Upload`), it is possible to run cache benchmark (GET http://localhost:6060/benchmark-cache) to get a normal Express endpoint, compare with an Express endpoint with apicache and a Foxx endpoint (running directly on the Arangodb server).
+
+```
+normal-endpoint-1500 x 198 ops/sec ±5.31% (66 runs sampled), mean: 0.005059091363502212, min: 0.0030529289411764704, max: 0.008494055533333333
+apicache-1500 x 239 ops/sec ±5.37% (64 runs sampled), mean: 0.004186898501713457, min: 0.002686408761904762, max: 0.00666099475
+apicache cleared
+foxx-normal-1500 x 225 ops/sec ±11.68% (53 runs sampled), mean: 0.004444197371994883, min: 0.002350943181818182, max: 0.011694175
+normal-endpoint-1000 x 170 ops/sec ±3.61% (64 runs sampled), mean: 0.005881316111198696, min: 0.004044285307692307, max: 0.007480849307692308
+apicache-1000 x 251 ops/sec ±10.68% (60 runs sampled), mean: 0.003984414631375938, min: 0.0009257939454545454, max: 0.006897863636363636
+apicache cleared
+foxx-normal-1000 x 210 ops/sec ±11.36% (50 runs sampled), mean: 0.004758395103295455, min: 0.0023967102272727274, max: 0.014461573
+normal-endpoint-200 x 171 ops/sec ±7.19% (45 runs sampled), mean: 0.005861501133245148, min: 0.002800511904761905, max: 0.009052291666666667
+apicache-200 x 578 ops/sec ±23.21% (73 runs sampled), mean: 0.001728663552360304, min: 0.0008798692586206896, max: 0.007205836133333333
+apicache cleared
+foxx-normal-200 x 214 ops/sec ±8.85% (52 runs sampled), mean: 0.004679952741119909, min: 0.0025429646, max: 0.00807461665
+normal-endpoint-slow x 10.81 ops/sec ±6.11% (55 runs sampled), mean: 0.09247199094545454, min: 0.087006916, max: 0.246066125
+apicache-slow x 588 ops/sec ±135.60% (78 runs sampled), mean: 0.0017013413845445551, min: 0.00043452529059829055, max: 0.092322958
+apicache cleared
+foxx-normal-slow x 11.02 ops/sec ±2.60% (56 runs sampled), mean: 0.09073608921428573, min: 0.086291625, max: 0.134830291
+```
