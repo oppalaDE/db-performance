@@ -10,6 +10,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.use('/', require('./routes/routes'));
+app.use('/cache', require('./routes/cache'));
 
 app.listen(6060, () => {
   console.log('API started on port 6060');

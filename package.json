@@ -14,7 +14,9 @@
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "^4.14.0",
+    "apicache": "^1.6.3",
     "arangojs": "^8.3.0",
+    "axios": "^1.6.2",
     "benchmark": "^2.1.4",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",

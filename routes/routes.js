@@ -1,6 +1,5 @@
 const express = require('express');
 const { prisma, mongoose, arangodb } = require('../db/db');
-const tests = require('./tests');
 const benchmarkTests = require('./benchmark');
 const router = express.Router();
 
@@ -162,6 +161,51 @@ router.get('/benchmark', async function(req, res, next) {
     }
 
     res.send(testResults).status(200);
+
+    return next();
+  } catch(error) {
+    return next(error);
+  }
+});
+
+router.get('/benchmark-cache', async function(req, res, next) {
+  try {
+    const testCache = await benchmarkTests.testCache();
+    const testResults = {
+      testCache
+    }
+
+    res.send(testResults).status(200);
+
+    return next();
+  } catch(error) {
+    return next(error);
+  }
+});
+
+router.get('/apicache/clear', async function(req, res, next) {
+  try {
+    res.send(apicache.clear()).status(200);
+
+    return next();
+  } catch(error) {
+    return next(error);
+  }
+});
+
+router.get('/apicache/performance', async function(req, res, next) {
+  try {
+    res.send(apicache.getPerformance()).status(200);
+
+    return next();
+  } catch(error) {
+    return next(error);
+  }
+});
+
+router.get('/apicache/index', async function(req, res, next) {
+  try {
+    res.send(apicache.getIndex()).status(200);
 
     return next();
   } catch(error) {
