@@ -110,3 +110,45 @@ apicache-slow x 588 ops/sec ±135.60% (78 runs sampled), mean: 0.001701341384544
 apicache cleared
 foxx-normal-slow x 11.02 ops/sec ±2.60% (56 runs sampled), mean: 0.09073608921428573, min: 0.086291625, max: 0.134830291
 ```
+
+## Connection Pool Benchmark Results
+
+The following results show how the size of the connection pool affects the performance of the queries. In these test cases the queries are running concurrently.
+
+```
+query-2-pool-3 x 571 ops/sec ±9.76% (62 runs sampled), mean: 0.0017513568954729839, min: 0.0010614157916666667, max: 0.0037933884705882354
+query-2-pool-10 x 351 ops/sec ±9.53% (48 runs sampled), mean: 0.0028456037346866092, min: 0.0013266239487179487, max: 0.005306341897435897
+query-5-pool-3 x 460 ops/sec ±1.37% (81 runs sampled), mean: 0.0021717936802483208, min: 0.0019298413461538463, max: 0.0026885625
+query-5-pool-10 x 470 ops/sec ±2.91% (78 runs sampled), mean: 0.0021263000622746124, min: 0.0018703046206896552, max: 0.0036843824285714287
+query-8-pool-3 x 334 ops/sec ±3.57% (82 runs sampled), mean: 0.0029984553088138275, min: 0.002723785105263158, max: 0.007067146894736843
+query-8-pool-10 x 393 ops/sec ±1.64% (75 runs sampled), mean: 0.0025441630208, min: 0.00220661332, max: 0.003015925
+query-25-pool-3 x 130 ops/sec ±0.78% (87 runs sampled), mean: 0.007708698824302134, min: 0.007178095285714286, max: 0.008579202428571428
+query-25-pool-25 x 209 ops/sec ±1.35% (80 runs sampled), mean: 0.00478485723061626, min: 0.004151407, max: 0.00588028475
+query-40-pool-3 x 85.21 ops/sec ±0.74% (81 runs sampled), mean: 0.011735368197530868, min: 0.011145925, max: 0.0128107334
+query-40-pool-25 x 143 ops/sec ±1.27% (79 runs sampled), mean: 0.00701289490242616, min: 0.006058425888888889, max: 0.0087319375
+query-1 x 658 ops/sec ±14.82% (44 runs sampled), mean: 0.001520574364890108, min: 0.0006775523648648649, max: 0.003394961716216216
+query-2 x 476 ops/sec ±9.45% (43 runs sampled), mean: 0.0021029962269220265, min: 0.0008359112131147541, max: 0.003421936475409836
+query-3 x 506 ops/sec ±9.50% (49 runs sampled), mean: 0.0019747988369365325, min: 0.0009949130689655172, max: 0.0030956274000000002
+query-4 x 588 ops/sec ±12.43% (55 runs sampled), mean: 0.0017001148851088141, min: 0.0008058468088235293, max: 0.003633420260869565
+query-5 x 707 ops/sec ±13.91% (50 runs sampled), mean: 0.001414246023372549, min: 0.00077424325, max: 0.0032509589558823533
+query-6 x 420 ops/sec ±8.41% (52 runs sampled), mean: 0.0023783408284758388, min: 0.0011935168510638298, max: 0.0037950625000000003
+query-7 x 562 ops/sec ±12.56% (42 runs sampled), mean: 0.0017794173500717478, min: 0.0007371083285714286, max: 0.0045943599090909094
+query-8 x 672 ops/sec ±12.61% (56 runs sampled), mean: 0.0014881290381843584, min: 0.0007578223088235294, max: 0.0035816691176470588
+```
+
+```
+slow-query-2-pool-3 x 9.63 ops/sec ±3.12% (49 runs sampled), mean: 0.10379977295918368, min: 0.08777775, max: 0.135598083
+slow-query-2-pool-10 x 9.97 ops/sec ±3.20% (50 runs sampled), mean: 0.10031932760000002, min: 0.087607625, max: 0.129528917
+slow-query-5-pool-3 x 5.34 ops/sec ±1.72% (30 runs sampled), mean: 0.18722480569999997, min: 0.178043958, max: 0.217276875
+slow-query-5-pool-10 x 6.43 ops/sec ±2.28% (35 runs sampled), mean: 0.1554912536, min: 0.12682675, max: 0.175627042
+slow-query-8-pool-3 x 3.63 ops/sec ±1.13% (22 runs sampled), mean: 0.2752837613636363, min: 0.267746542, max: 0.296147166
+slow-query-8-pool-10 x 5.00 ops/sec ±2.07% (28 runs sampled), mean: 0.20004346885714286, min: 0.179407792, max: 0.225446458
+slow-query-1 x 11.65 ops/sec ±0.26% (57 runs sampled), mean: 0.08584883775438594, min: 0.084849625, max: 0.089599666
+slow-query-2 x 11.54 ops/sec ±0.23% (57 runs sampled), mean: 0.08661858112280701, min: 0.08538475, max: 0.088505416
+slow-query-3 x 11.69 ops/sec ±0.24% (58 runs sampled), mean: 0.08552880031034484, min: 0.084712375, max: 0.088407084
+slow-query-4 x 11.59 ops/sec ±0.25% (57 runs sampled), mean: 0.08629989773684209, min: 0.08515875, max: 0.090091042
+slow-query-5 x 11.64 ops/sec ±0.27% (57 runs sampled), mean: 0.08593723822807019, min: 0.085090667, max: 0.088826625
+slow-query-6 x 11.73 ops/sec ±0.24% (58 runs sampled), mean: 0.08528695841379308, min: 0.084493708, max: 0.08955525
+slow-query-7 x 11.67 ops/sec ±0.26% (57 runs sampled), mean: 0.08569253142105261, min: 0.084848209, max: 0.090221667
+slow-query-8 x 11.70 ops/sec ±0.20% (58 runs sampled), mean: 0.08546982253448278, min: 0.08453125, max: 0.088509083
+```

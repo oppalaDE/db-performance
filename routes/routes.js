@@ -183,6 +183,21 @@ router.get('/benchmark-cache', async function(req, res, next) {
   }
 });
 
+router.get('/benchmark-connection-pool', async function(req, res, next) {
+  try {
+    const testConnectionPool = await benchmarkTests.testConnectionPool();
+    const testResults = {
+      testConnectionPool
+    }
+
+    res.send(testResults).status(200);
+
+    return next();
+  } catch(error) {
+    return next(error);
+  }
+});
+
 router.get('/apicache/clear', async function(req, res, next) {
   try {
     res.send(apicache.clear()).status(200);

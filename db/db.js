@@ -195,6 +195,31 @@ const arangodb = new arangojs.Database({
     password: 'initial'
   }
 });
+
+const arangodb10 = new arangojs.Database({
+  url: 'tcp://127.0.0.1:8529',
+  databaseName: 'dbPerformance',
+  auth: {
+    username: 'root',
+    password: 'initial'
+  },
+  agentOptions: {
+    maxSockets: 10
+  }
+});
+
+const arangodb25 = new arangojs.Database({
+  url: 'tcp://127.0.0.1:8529',
+  databaseName: 'dbPerformance',
+  auth: {
+    username: 'root',
+    password: 'initial'
+  },
+  agentOptions: {
+    maxSockets: 25
+  }
+});
+
 arangodb.listCollections().then(async (collections) => {
   if(!collections.find((collection) => collection.name === 'city')) {
     await arangodb.createCollection('city');
@@ -229,3 +254,5 @@ arangodb.listCollections().then(async (collections) => {
   }
 });
 exports.arangodb = arangodb;
+exports.arangodb10 = arangodb10;
+exports.arangodb25 = arangodb25;

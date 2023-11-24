@@ -12,6 +12,12 @@ GET http://localhost:6060/benchmark
 GET http://localhost:6060/benchmark-cache
 
 
+
+###
+GET http://localhost:6060/benchmark-connection-pool
+
+
+
 ###
 GET http://localhost:6060/apicache/clear
 
