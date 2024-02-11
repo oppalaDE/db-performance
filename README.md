@@ -152,3 +152,19 @@ slow-query-6 x 11.73 ops/sec ±0.24% (58 runs sampled), mean: 0.0852869584137930
 slow-query-7 x 11.67 ops/sec ±0.26% (57 runs sampled), mean: 0.08569253142105261, min: 0.084848209, max: 0.090221667
 slow-query-8 x 11.70 ops/sec ±0.20% (58 runs sampled), mean: 0.08546982253448278, min: 0.08453125, max: 0.088509083
 ```
+
+## Transaction Benchmark Results
+
+[See blog article about different transactions here](https://gen.tube/blog/datenbank-transaktionen-arangodb)
+
+```
+arango-javascript-transaction x 691 ops/sec ±5.65% (69 runs sampled), mean: 0.0014476524790174832
+arango-stream-transaction x 228 ops/sec ±2.14% (72 runs sampled), mean: 0.004388068339261664
+arango-implicit-transaction x 839 ops/sec ±5.03% (68 runs sampled), mean: 0.0011925278973168212
+```
+
+```
+arango-javascript-single-step-transaction x 1,246 ops/sec ±14.76% (58 runs sampled), mean: 0.00080264402201132
+arango-stream-single-step-transaction x 656 ops/sec ±3.43% (61 runs sampled), mean: 0.0015243980708785202
+arango-implicit-single-step-transaction x 1,741 ops/sec ±3.88% (63 runs sampled), mean: 0.0005742805439789954
+```

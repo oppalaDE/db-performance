@@ -130,6 +130,21 @@ router.post('/generate-test-data', async function(req, res, next) {
     }))).flat();
     await arangodb.collection('trip_city').saveAll(tripCityInsertArango);
 
+    // Insert customers
+    const customers = [
+      { firstName: 'Dennis', lastName: 'Merzel', email: 'd.merzel@gmail.com' }
+    ];
+
+    const customersInsertArango = customers.map((customer, index) => ({_key: String(index + 1), firstName: customer.firstName, lastName: customer.lastName, email: customer.email}));
+    await arangodb.collection('customers').saveAll(customersInsertArango);
+
+    // Insert products
+    const products = [
+      { name: 'Apple iPhone 15 Pro', priceEuro: 999, quantityAvailable: 4 }
+    ];
+
+    const productsInsertArango = products.map((product, index) => ({_key: String(index + 1), name: product.name, priceEuro: product.priceEuro, quantityAvailable: product.quantityAvailable}));
+    await arangodb.collection('products').saveAll(productsInsertArango);
 
     res.send('OK').status(200);
 
@@ -188,6 +203,21 @@ router.get('/benchmark-connection-pool', async function(req, res, next) {
     const testConnectionPool = await benchmarkTests.testConnectionPool();
     const testResults = {
       testConnectionPool
+    }
+
+    res.send(testResults).status(200);
+
+    return next();
+  } catch(error) {
+    return next(error);
+  }
+});
+
+router.get('/benchmark-transaction', async function(req, res, next) {
+  try {
+    const testTransaction = await benchmarkTests.testTransaction();
+    const testResults = {
+      testTransaction
     }
 
     res.send(testResults).status(200);

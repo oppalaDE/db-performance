@@ -252,6 +252,93 @@ arangodb.listCollections().then(async (collections) => {
   if(!collections.find((collection) => collection.name === 'trip_city')) {
     await arangodb.createEdgeCollection('trip_city');
   }
+
+
+  if(!collections.find((collection) => collection.name === 'customers')) {
+    const customers = await arangodb.createCollection(
+      'customers',
+      {
+        schema: {
+          rule: {
+            type: 'object',
+            additionalProperties: false,
+            required: [
+              'firstName',
+              'lastName',
+              'email'
+            ],
+            properties: {
+              firstName: {
+                type: 'string'
+              },
+              lastName: {
+                type: 'string'
+              },
+              email: {
+                type: 'string'
+              }
+            }
+          }
+        }
+      }
+    );
+    await Promise.all([
+      customers.ensureIndex({type: 'persistent', fields: ['email'], name: 'email'}),
+    ]);
+  }
+
+  if(!collections.find((collection) => collection.name === 'products')) {
+    await arangodb.createCollection(
+      'products',
+      {
+        schema: {
+          rule: {
+            type: 'object',
+            additionalProperties: false,
+            required: [
+              'name',
+              'priceEuro',
+              'quantityAvailable'
+            ],
+            properties: {
+              name: {
+                type: 'string'
+              },
+              priceEuro: {
+                type: 'number'
+              },
+              quantityAvailable: {
+                type: 'number',
+                minimum: 0
+              }
+            }
+          }
+        }
+      }
+    );
+  }
+
+  if(!collections.find((collection) => collection.name === 'orders')) {
+    await arangodb.createEdgeCollection(
+      'orders',
+      {
+        schema: {
+          rule: {
+            type: 'object',
+            additionalProperties: false,
+            required: [
+              'quantity'
+            ],
+            properties: {
+              quantity: {
+                type: 'number'
+              }
+            }
+          }
+        }
+      }
+    );
+  }
 });
 exports.arangodb = arangodb;
 exports.arangodb10 = arangodb10;

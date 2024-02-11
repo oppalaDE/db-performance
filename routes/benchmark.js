@@ -2538,3 +2538,394 @@ exports.testConnectionPool = async function() {
 
   return res;
 }
+
+// Transaction
+exports.testTransaction = async function(input) {
+  const res = {};
+
+  const resetData = async () => {
+    // Remove all data
+    await arangodb.collection('customers').truncate();
+    await arangodb.collection('products').truncate();
+    await arangodb.collection('orders').truncate();
+    // Insert customers
+    const customers = [
+      { firstName: 'Dennis', lastName: 'Merzel', email: 'd.merzel@gmail.com' }
+    ];
+    const customersInsertArango = customers.map((customer, index) => ({_key: String(index + 1), firstName: customer.firstName, lastName: customer.lastName, email: customer.email}));
+    await arangodb.collection('customers').saveAll(customersInsertArango);
+    // Insert products
+    const products = [
+      { name: 'Product 1 for JavaScript transaction', priceEuro: 399, quantityAvailable: 20_000 },
+      { name: 'Product 2 for JavaScript transaction', priceEuro: 1499, quantityAvailable: 1 },
+      { name: 'Product 1 for stream transaction', priceEuro: 399, quantityAvailable: 20_000 },
+      { name: 'Product 2 for stream transaction', priceEuro: 1499, quantityAvailable: 1 },
+      { name: 'Product 1 for without transaction', priceEuro: 399, quantityAvailable: 20_000 },
+      { name: 'Product 2 for without transaction', priceEuro: 1499, quantityAvailable: 1 },
+    ];
+    const productsInsertArango = products.map((product, index) => ({_key: String(index + 1), name: product.name, priceEuro: product.priceEuro, quantityAvailable: product.quantityAvailable}));
+    await arangodb.collection('products').saveAll(productsInsertArango);
+  }
+
+  await resetData();
+
+  await new Promise((resolve) =>
+    new Benchmark.Suite()
+      .add('arango-javascript-transaction', async (deferred) => {
+        const createOrder = async (email, productId, quantity) => {
+          return arangodb.executeTransaction(
+            {
+              write: ['orders'],
+              read: ['customers'],
+              exclusive: ['products']
+            },
+            String(function (params) {
+              var db = require('@arangodb').db;
+              
+              var customerId = db._query(
+                `
+                  FOR customer IN customers
+                    FILTER customer.email == @email
+                    RETURN customer._id
+                `,
+                {
+                  email: params.email
+                }
+              ).next();
+
+              var order = db._query(
+                `
+                  INSERT {
+                    _from: @customerId,
+                    _to: @productId,
+                    quantity: @quantity
+                  } INTO orders
+                  RETURN NEW
+                `,
+                {
+                  customerId,
+                  productId: params.productId,
+                  quantity: params.quantity
+                }
+              ).next();
+
+
+              db._query(
+                `
+                  LET product = DOCUMENT(@productId)
+                  UPDATE product WITH {
+                    quantityAvailable: product.quantityAvailable - @quantity
+                  } INTO products
+                `,
+                {
+                  productId: params.productId,
+                  quantity: params.quantity
+                }
+              ).next();
+
+              return order;
+            }),
+            {
+              params: {
+                email,
+                productId,
+                quantity
+              }
+            }
+          ).catch((error) => {
+            if (error.errorNum === 1620) // Schema validation failed, eg. products quantityAvailable is less than 0
+              return Promise.resolve(null);
+            throw error;
+          });
+        };
+
+        const newOrders = [
+          { email: 'd.merzel@gmail.com', productId: 'products/1', quantity: 3 },
+          { email: 'd.merzel@gmail.com', productId: 'products/2', quantity: 2 }
+        ];
+        const transactionResults = await Promise.all(
+          newOrders.map(async (newOrder) => createOrder(newOrder.email, newOrder.productId, newOrder.quantity))
+        );
+
+        // console.log(transactionResults);
+
+        deferred.resolve();
+      }, {defer: true})
+      .add('arango-stream-transaction', async (deferred) => {
+        // Use transaction
+        const createOrder = async (email, productId, quantity) => {
+          const transaction = await arangodb.beginTransaction({
+            write: ['orders'],
+            read: ['customers'],
+            exclusive: ['products']
+          });
+      
+          const customerId = await transaction.step(async () => {
+            return arangodb.query(
+              `
+                FOR customer IN customers
+                  FILTER customer.email == @email
+                  RETURN customer._id
+              `,
+              { email }
+            ).then((cursor) => cursor.next());
+          });
+
+          let order = await transaction.step(async () => {
+            return arangodb.query(
+              `
+                INSERT {
+                  _from: @customerId,
+                  _to: @productId,
+                  quantity: @quantity
+                } INTO orders
+                RETURN NEW
+              `,
+              { customerId, productId, quantity }
+            ).then((cursor) => cursor.next());
+          });
+      
+          await transaction.step(async () => {
+            return arangodb.query(
+              `
+                LET product = DOCUMENT(@productId)
+                UPDATE product WITH {
+                  quantityAvailable: product.quantityAvailable - @quantity
+                } INTO products
+              `,
+              { productId, quantity }
+            ).then(
+              (cursor) => cursor.next(),
+              async (error) => {
+                if(error.errorNum === 1620) // Schema validation failed, eg. products quantityAvailable is less than 0
+                  order = null;
+                else
+                  throw error;
+              }
+            );
+          });
+
+          if (order === null)
+            await transaction.abort();
+          else
+            await transaction.commit();
+          return order;
+        };
+
+        const newOrders = [
+          { email: 'd.merzel@gmail.com', productId: 'products/3', quantity: 3 },
+          { email: 'd.merzel@gmail.com', productId: 'products/4', quantity: 2 }
+        ];
+        const transactionResults = await Promise.all(
+          newOrders.map(async (newOrder) => createOrder(newOrder.email, newOrder.productId, newOrder.quantity))
+        );
+
+        // console.log(transactionResults);
+
+        deferred.resolve();
+      }, {defer: true})
+      .add('arango-implicit-transaction', async (deferred) => {
+        const createOrder = async (email, productId, quantity) => {
+          return arangodb.query(
+            `
+              LET customerId = FIRST(
+                FOR customer IN customers
+                  FILTER customer.email == @email
+                  RETURN customer._id
+              )
+
+              LET product = DOCUMENT(@productId)
+
+              LET order = (
+                INSERT {
+                  _from: customerId,
+                  _to: @productId,
+                  quantity: @quantity
+                } INTO orders
+                RETURN NEW
+              )
+
+              LET quantityAvailable = (
+                UPDATE product WITH {
+                  quantityAvailable: product.quantityAvailable - @quantity
+                } INTO products OPTIONS { exclusive: true }
+              )
+
+              RETURN order
+            `,
+            { email, productId, quantity }
+          ).then(
+            (cursor) => cursor.next(),
+            (error) => {
+              if (error.errorNum === 1620) // Schema validation failed, eg. products quantityAvailable is less than 0
+                return Promise.resolve(null);
+              throw error;
+            }
+          );
+        };
+
+        const newOrders = [
+          { email: 'd.merzel@gmail.com', productId: 'products/5', quantity: 3 },
+          { email: 'd.merzel@gmail.com', productId: 'products/6', quantity: 2 }
+        ];
+        const transactionResults = await Promise.all(
+          newOrders.map(async (newOrder) => createOrder(newOrder.email, newOrder.productId, newOrder.quantity))
+        );
+
+        // console.log(transactionResults);
+
+        deferred.resolve();
+      }, {defer: true})
+      .on('cycle', async (event) => {
+        console.log(`${String(event.target)}, mean: ${event.target.stats.mean}`);
+        res[event.target.name] = {
+          target: String(event.target),
+          sample: event.target.stats.sample,
+          mean: event.target.stats.mean
+        };
+      })
+      .on('complete', function() {
+        res['transaction-fastest'] = this.filter('fastest').map('name');
+        resolve();
+      })
+      .run({async: false, defer: true})
+  );
+
+  await resetData();
+
+  let productCounter = 1;
+  await new Promise((resolve) =>
+    new Benchmark.Suite()
+      .add('arango-javascript-single-step-transaction', async (deferred) => {
+        const createOrder = async (product) => {
+          return arangodb.executeTransaction(
+            {
+              write: ['products']
+            },
+            String(function (params) {
+              var db = require('@arangodb').db;
+
+              return db._query(
+                `
+                  INSERT @newProduct INTO products
+                  RETURN NEW._id
+                `,
+                {
+                  newProduct: params.product
+                }
+              ).next();
+            }),
+            {
+              params: {
+                product
+              }
+            }
+          ).catch((error) => {
+            if (error.errorNum === 1620) // Schema validation failed
+              return Promise.resolve(null);
+            throw error;
+          });
+        };
+
+        const transactionResults = await createOrder({
+          name: `New product from JavaScript transaction (${productCounter++})`,
+          priceEuro: 249,
+          quantityAvailable: 1_000
+        });
+
+        // console.log(transactionResults);
+
+        deferred.resolve();
+      }, {defer: true})
+      .add('arango-stream-single-step-transaction', async (deferred) => {
+        // Use transaction
+        const createOrder = async (product) => {
+          const transaction = await arangodb.beginTransaction({
+            write: ['products']
+          });
+      
+          const productId = await transaction.step(async () => {
+            return arangodb.query(
+              `
+                INSERT @newProduct INTO products
+                RETURN NEW._id
+              `,
+              {
+                newProduct: product
+              }
+            ).then(
+              (cursor) => cursor.next(),
+              (error) => {
+                if(error.errorNum === 1620) // Schema validation failed
+                  return Promise.resolve(null);
+                throw error;
+              }
+            );
+          });
+
+          if (productId === null)
+            await transaction.abort();
+          else
+            await transaction.commit();
+          return productId;
+        };
+
+        const transactionResults = await createOrder({
+          name: `New product from stream transaction (${productCounter++})`,
+          priceEuro: 249,
+          quantityAvailable: 1_000
+        });
+
+        // console.log(transactionResults);
+
+        deferred.resolve();
+      }, {defer: true})
+      .add('arango-implicit-single-step-transaction', async (deferred) => {
+        const createOrder = async (product) => {
+          return arangodb.query(
+            `
+              INSERT @newProduct INTO products
+              RETURN NEW._id
+            `,
+            {
+              newProduct: product
+            }
+          ).then(
+            (cursor) => cursor.next(),
+            (error) => {
+              if (error.errorNum === 1620)
+                return Promise.resolve(null);
+              throw error;
+            }
+          );
+        };
+
+        const transactionResults = await createOrder({
+          name: `New product from implicit transaction (${productCounter++})`,
+          priceEuro: 249,
+          quantityAvailable: 1_000
+        });
+
+        // console.log(transactionResults);
+
+        deferred.resolve();
+      }, {defer: true})
+      .on('cycle', async (event) => {
+        productCounter = 1;
+
+        console.log(`${String(event.target)}, mean: ${event.target.stats.mean}`);
+        res[event.target.name] = {
+          target: String(event.target),
+          sample: event.target.stats.sample,
+          mean: event.target.stats.mean
+        };
+      })
+      .on('complete', function() {
+        res['single-step-transaction-fastest'] = this.filter('fastest').map('name');
+        resolve();
+      })
+      .run({async: false, defer: true})
+  );
+
+  return res;
+}
